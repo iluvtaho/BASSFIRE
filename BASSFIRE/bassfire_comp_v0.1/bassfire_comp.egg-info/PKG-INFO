@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: bassfire_comp
+Version: 0.1.0
+Summary: BASS/BASS-II to SAFFIRE run-pair comparability finder
+Requires-Python: >=3.11
+Provides-Extra: xlsx
+Requires-Dist: openpyxl>=3.1; extra == "xlsx"

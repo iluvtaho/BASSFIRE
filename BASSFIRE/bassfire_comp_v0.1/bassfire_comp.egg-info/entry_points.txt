@@ -1,0 +1,2 @@
+[console_scripts]
+bassfire_comp = bassfire_comp.cli:main

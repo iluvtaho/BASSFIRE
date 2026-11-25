@@ -1,0 +1,96 @@
+# bassfire_comp settings. Anything you delete falls back to the built-in default.
+# EVERY number below is an UNVALIDATED placeholder until checked against pairs you
+# have reviewed by hand. Change them freely; the config hash is stored in run_log.json.
+
+[ingest]
+# "21 %" with no stated basis is held as ambiguous (missing) unless this is true.
+assume_percent_oxygen_is_mole_fraction = false
+# Status given to rows auto-detected in data/raw (every such record is flagged).
+autodetect_record_status = "executed"
+autodetect_min_columns = 3
+# Read thickness / width / shape / "opposed" out of material strings such as
+# "1 cm wide 200 micron thick PMMA" (only when the real column is blank; flagged).
+parse_material_strings = true
+
+# "Percent O2" columns in the SAFFIRE tables state no basis. Confirmed by you: mole percent.
+# (Flagged oxygen_basis_from_config on every record.)
+[ingest.oxygen_basis_by_investigation]
+"PSI-98" = "mole_percent"
+"PSI-99" = "mole_percent"
+"PSI-100" = "mole_percent"
+
+# Applied ONLY to blank fields, and flagged default_from_config:<field> on every record.
+# The tables carry no gravity or airflow-definition column. airflow_measurement_type = "inlet":
+# SAFFIRE "Air Flow" is the inlet velocity (confirmed by you); BASS/BASS-II flow speed is the
+# velocity sent at the fire, which is treated as inlet too. Change it if the reports say otherwise.
+[programme_defaults."BASS"]
+gravity_environment = "microgravity"
+airflow_measurement_type = "inlet"
+[programme_defaults."BASS-II"]
+gravity_environment = "microgravity"
+airflow_measurement_type = "inlet"
+[programme_defaults."SAFFIRE-I"]
+gravity_environment = "microgravity"
+airflow_measurement_type = "inlet"
+[programme_defaults."SAFFIRE-II"]
+gravity_environment = "microgravity"
+airflow_measurement_type = "inlet"
+[programme_defaults."SAFFIRE-III"]
+gravity_environment = "microgravity"
+airflow_measurement_type = "inlet"
+
+[eligibility]
+exploratory_tier_enabled = true          # related (same fuel_category) fuels
+unrelated_fuel_tier = "ineligible"       # or "exploratory"
+direct_required_known = ["flow_direction", "gravity_environment", "fuel_name", "airflow_measurement_type"]
+
+[fuel]
+exact_score = 1.0
+related_score = 0.5
+different_score = 0.0
+# Names to treat as the same material, e.g. alias_groups = [["SIBAL", "your other spelling"]]
+alias_groups = []
+# Material strings are matched to an identity with regex rules (built in: SIBAL, PMMA, Nomex
+# variants, Ultem, Silicone, paraffin and Japan wax). Two or more hits = composite sample.
+# fuel_category (for "related" fuels) is filled from this table only when your column is blank:
+[fuel.category_by_identity]
+SIBAL = "fabric"
+"Nomex III natural" = "fabric"
+"Nomex blend" = "fabric"
+PMMA = "polymer"
+Ultem = "polymer"
+"Paraffin wax" = "wax"
+"Japan wax" = "wax"
+
+[labels]
+close_min_score = 0.8
+moderate_min_score = 0.4
+
+# mode "relative": |ref-tgt|/|tgt|;  "absolute": |ref-tgt| in SI units (mole fraction for O2)
+# score = max(0, 1 - difference/tol)
+[tolerances]
+airflow = { mode = "relative", tol = 0.5 }
+oxygen_mole_fraction = { mode = "absolute", tol = 0.05 }
+oxygen_partial_pressure = { mode = "relative", tol = 0.25 }
+pressure = { mode = "relative", tol = 0.25 }
+temperature = { mode = "absolute", tol = 30.0 }
+sample_thickness = { mode = "relative", tol = 0.5 }
+sample_width = { mode = "relative", tol = 0.5 }
+sample_length = { mode = "relative", tol = 0.5 }
+duct_height = { mode = "relative", tol = 0.5 }
+duct_width = { mode = "relative", tol = 0.5 }
+duct_length = { mode = "relative", tol = 0.5 }
+sample_duct_width_ratio = { mode = "relative", tol = 0.5 }
+
+[ranking]
+aggregate_enabled = true                 # provisional score; false = rank by tier, then completeness
+include_tiers = ["direct", "exploratory"]
+min_data_completeness = 0.4
+min_provisional_score = 0.5
+top_n = 3
+
+[ranking.weights]
+material = 1.0
+environment = 1.0
+geometry = 1.0
+flow_configuration = 1.0
